@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adrian Rodrigues</title>
+<meta name="description" content="Adrian Rodrigues, Senior Graphics / Rendering Programmer. Unreal Engine 5 rendering performance, Vulkan, path tracing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap">
+<style>
+/* Layout: one 1080px column read like a frame capture: a header, the rendered frame, then profiler-style rows for the work. */
+:root {
+  --bg: #f4f5f6;
+  --surface: #ffffff;
+  --ink: #15191e;
+  --muted: #59626d;
+  --line: #d9dde2;
+  --accent: #0b6f7c;
+  --accent-soft: #d6ecef;
+  --bar: #0b6f7c;
+  --bar-track: #e6e9ec;
+  --display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1114; --surface: #151a1f; --ink: #e7eaed; --muted: #97a1ab; --line: #262d34;
+    --accent: #6cc9d4; --accent-soft: #15333a; --bar: #6cc9d4; --bar-track: #222930; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1114; --surface: #151a1f; --ink: #e7eaed; --muted: #97a1ab; --line: #262d34;
+  --accent: #6cc9d4; --accent-soft: #15333a; --bar: #6cc9d4; --bar-track: #222930; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+a { color: var(--accent); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+section { padding-block: 56px; border-top: 1px solid var(--line); }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.6rem, 3vw, 2rem); line-height: 1.2; }
+h3 { font-size: 1.2rem; line-height: 1.3; }
+p { margin: 0; }
+.label { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 62ch; }
+.sec-head { display: grid; gap: 10px; margin-bottom: 32px; }
+
+/* Header */
+header.top { padding-block: 64px 36px; display: grid; gap: 22px; }
+header.top h1 { font-size: clamp(2.6rem, 7vw, 4.4rem); line-height: 1.02; font-weight: 600; }
+.role { font-family: var(--display); font-size: clamp(1.15rem, 2.4vw, 1.45rem); font-style: italic; font-weight: 500; color: var(--muted); }
+.intro { max-width: 60ch; font-size: 1.06rem; }
+.links { display: flex; flex-wrap: wrap; gap: 10px 22px; font-size: 0.95rem; align-items: center; }
+.links a { font-weight: 500; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 6px; background: var(--ink); color: var(--bg); text-decoration: none; font-weight: 600; }
+.btn:hover { opacity: 0.88; }
+.where { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); }
+
+/* Frame */
+figure { margin: 0; }
+.frame { position: relative; border-radius: 8px; overflow: hidden; background: #000; }
+.frame img { display: block; width: 100%; height: auto; }
+.hud { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--mono); font-size: 0.78rem; color: var(--muted); padding-top: 10px; font-variant-numeric: tabular-nums; }
+.hud b { color: var(--ink); font-weight: 500; }
+
+/* Profiler rows */
+.capture { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); overflow: hidden; }
+.capture-head, .pass { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr) 11rem; gap: 20px; padding: 16px 20px; align-items: start; }
+.capture-head { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--line); padding-block: 10px; }
+.pass + .pass { border-top: 1px solid var(--line); }
+.pass .name { font-family: var(--mono); font-size: 0.88rem; font-weight: 500; }
+.pass .proj { display: block; font-family: var(--body); font-size: 0.78rem; color: var(--muted); font-weight: 400; margin-top: 2px; }
+.pass .what { min-width: 0; font-size: 0.95rem; }
+.delta { display: grid; gap: 6px; font-variant-numeric: tabular-nums; }
+.delta .num { font-family: var(--mono); font-size: 0.95rem; font-weight: 500; color: var(--accent); }
+.delta .num.plain { color: var(--muted); font-weight: 400; font-size: 0.82rem; }
+.track { height: 6px; border-radius: 3px; background: var(--bar-track); position: relative; overflow: hidden; }
+.track i { position: absolute; inset: 0 auto 0 0; background: var(--bar); border-radius: 3px; }
+.track i.range { opacity: 0.45; }
+.track i.range + i { opacity: 1; }
+.note { margin-top: 14px; font-size: 0.85rem; color: var(--muted); max-width: 70ch; }
+
+/* Cerberus */
+.cer-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 40px; margin-top: 36px; }
+.feat { display: grid; gap: 8px; align-content: start; min-width: 0; }
+.feat p { color: var(--muted); font-size: 0.95rem; }
+.feat .tag { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); }
+.pipeline { margin-top: 40px; overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+.pipeline pre { margin: 0; padding: 18px 20px; font-family: var(--mono); font-size: 0.82rem; line-height: 1.7; color: var(--ink); }
+.pipeline .c { color: var(--muted); }
+.gallery { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 40px; }
+.gallery figure { display: grid; gap: 8px; }
+.gallery img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; display: block; background: #000; }
+.gallery figcaption { font-size: 0.82rem; color: var(--muted); }
+.repo { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; }
+
+/* Experience */
+.roles { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.r { display: grid; grid-template-columns: 11rem minmax(0, 1fr); gap: 24px; padding-block: 18px; border-bottom: 1px solid var(--line); }
+.r .when { font-family: var(--mono); font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 3px; }
+.r .t { font-weight: 600; }
+.r .s { color: var(--muted); font-size: 0.93rem; }
+.firm { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.firm h3 { font-size: 1.35rem; }
+.edu { margin-top: 28px; color: var(--muted); font-size: 0.93rem; }
+
+/* Earlier */
+.earlier { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.card { border: 1px solid var(--line); border-radius: 8px; padding: 18px; background: var(--surface); display: grid; gap: 8px; align-content: start; min-width: 0; }
+.card p { color: var(--muted); font-size: 0.92rem; }
+.card .lang { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+
+/* Contact */
+.contact { display: grid; gap: 18px; }
+.mail { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.mail code { font-family: var(--mono); font-size: 1rem; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); user-select: all; }
+.copy { font: inherit; font-size: 0.85rem; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.copy:hover { border-color: var(--accent); }
+footer { padding-block: 28px 48px; font-size: 0.8rem; color: var(--muted); border-top: 1px solid var(--line); }
+
+@media (max-width: 760px) {
+  .capture-head { display: none; }
+  .pass { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .cer-grid, .gallery, .earlier { grid-template-columns: minmax(0, 1fr); }
+  .r { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  section { padding-block: 44px; }
+  header.top { padding-block: 44px 28px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .track i { transform-origin: left; animation: grow 900ms cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes grow { from { transform: scaleX(0.02); } to { transform: scaleX(1); } }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="label">Remote · EU</div>
+    <h1>Adrian Rodrigues</h1>
+    <div class="role">Senior Graphics / Rendering Programmer</div>
+    <p class="intro">I make Unreal Engine 5 games run faster on PS5, Xbox Series X|S and PC. I profile the frame, find which part of a pass actually costs time, and fix it in the renderer or in the content. In my own time I build Cerberus, a Vulkan renderer with a hardware ray-traced path tracer.</p>
+    <div class="links">
+      <a class="btn" href="Adrian_Rodrigues_CV.pdf">Download CV (PDF)</a>
+      <a href="https://www.linkedin.com/in/adrian-rodrigues-437b0a115/">LinkedIn</a>
+      <a href="https://github.com/adrianrodriguesm">GitHub</a>
+      <a href="https://github.com/adrianrodriguesm/Cerberus-Engine">Cerberus source</a>
+    </div>
+  </header>
+
+  <figure>
+    <div class="frame"><img src="images/pathtracer-viewport.jpg" width="1516" height="1030" alt="Cerberus path tracer rendering Sponza with a helmet, a gun model, two spheres and a cube, denoised with A-SVGF"></div>
+    <figcaption class="hud">
+      <span><b>Cerberus</b> path tracer</span>
+      <span>1 spp · 4 bounces</span>
+      <span>A-SVGF denoiser</span>
+      <span>315,832 triangles</span>
+      <span>Vulkan KHR ray tracing</span>
+    </figcaption>
+  </figure>
+</div>
+
+<section id="work">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="label">Professional work</div>
+      <h2>Frame-time wins on shipping UE5 projects</h2>
+      <p class="lede">Results from my work at Third Kind Games (Virtuos). The current project is unannounced and under NDA, so only the pass, the change and the measured result are shown.</p>
+    </div>
+    <div class="capture" role="table" aria-label="Optimisation results">
+      <div class="capture-head" role="row"><span role="columnheader">Pass</span><span role="columnheader">Change</span><span role="columnheader">Result</span></div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Virtual Shadow Maps<span class="proj">Unannounced UE5 project · PS5</span></div>
+        <p class="what" role="cell">Changed how shadow animation updates are handled for skinned foliage.</p>
+        <div class="delta" role="cell"><span class="num">~29% cheaper</span><div class="track"><i style="width:29%"></i></div></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Nanite Visibility<span class="proj">Unannounced UE5 project</span></div>
+        <p class="what" role="cell">Profiled the pass and found voxels (~28%) and programmable raster (~20%) were its largest costs. Built tools to switch foliage Nanite settings to voxels and tuned programmable raster, density and rasteriser configuration.</p>
+        <div class="delta" role="cell"><span class="num">~20–25% cheaper</span><div class="track"><i class="range" style="width:25%"></i><i style="width:20%"></i></div></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Virtual Texture uploads<span class="proj">Unannounced UE5 project</span></div>
+        <p class="what" role="cell">Reduced the upload spikes that caused frame hitches.</p>
+        <div class="delta" role="cell"><span class="num">~30–40% lower spikes</span><div class="track"><i class="range" style="width:40%"></i><i style="width:30%"></i></div></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Nanite raster &amp; Base Pass<span class="proj">Unannounced UE5 project · PS5</span></div>
+        <p class="what" role="cell">Broke both passes down against the platform budget with A/B tests: masked materials, WPO, derivative-heavy shading and vertex-side material features. Turned the findings into a prioritised action plan for Art and Tech Art.</p>
+        <div class="delta" role="cell"><span class="num">~7–10% per item</span><div class="track"><i class="range" style="width:10%"></i><i style="width:7%"></i></div></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">D3D12 RHI<span class="proj">Mavrix · PC</span></div>
+        <p class="what" role="cell">Diagnosed and fixed AMD-specific crashes when adding Ray Tracing Pipeline State Objects, with vendor-specific handling in the RHI.</p>
+        <div class="delta" role="cell"><span class="num plain">Crash fixed</span></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Upscaling &amp; scalability<span class="proj">Mavrix · PC, PS5, Xbox Series X|S</span></div>
+        <p class="what" role="cell">Designed a graphics settings framework for DLSS, FSR 4 and frame generation, and per-platform Performance and Quality modes built on Device Profiles.</p>
+        <div class="delta" role="cell"><span class="num plain">Settings framework</span></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Virtual Shadow Maps<span class="proj">Mavrix</span></div>
+        <p class="what" role="cell">Added a distance-based ray-count falloff for Shadow Map Ray Tracing and custom cache invalidation for large, streamed worlds.</p>
+        <div class="delta" role="cell"><span class="num plain">Lower sampling cost at distance</span></div>
+      </div>
+    </div>
+    <p class="note">Percentages are approximate and measured on the project's own captures. Bars show the share of the pass's cost removed.</p>
+  </div>
+</section>
+
+<section id="cerberus">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="label">Personal project</div>
+      <h2>Cerberus</h2>
+      <p class="lede">A Vulkan renderer written from scratch in C++20. It has two scene renderers you can switch at runtime: a forward PBR rasteriser and a hardware ray-traced path tracer with its own denoiser. Both run on a render graph over a thin RHI.</p>
+    </div>
+    <figure>
+      <div class="frame"><img src="images/pathtracer-editor.jpg" width="1800" height="980" loading="lazy" alt="Cerberus editor with the path tracer viewport, renderer settings for the SVGF denoiser and the GPU profiler panel"></div>
+      <figcaption class="hud"><span><b>Editor</b> · denoiser controls, render graph and GPU profiler</span><span>Frame total (GPU) 12.97 ms</span></figcaption>
+    </figure>
+    <div class="cer-grid">
+      <div class="feat">
+        <span class="tag">VK_KHR_ray_tracing_pipeline</span>
+        <h3>Hardware path tracer</h3>
+        <p>Raygen, closest-hit and miss shaders, BLAS/TLAS builds with compaction, a shader binding table and bindless textures. One sample per pixel, BSDF-sampled indirect light and next-event estimation for directional lights.</p>
+      </div>
+      <div class="feat">
+        <span class="tag">A-SVGF</span>
+        <h3>Real-time denoiser</h3>
+        <p>Demodulated diffuse and specular signals. Temporal reprojection with consistency checks and a ReLAX-style search fallback, virtual reprojection for reflections, a history-fix pass and variance-guided à-trous filtering.</p>
+      </div>
+      <div class="feat">
+        <span class="tag">RenderGraph</span>
+        <h3>Render graph</h3>
+        <p>Passes declare what they read and write. The graph sorts them, derives every barrier from real per-frame access history, merges compatible passes into one Dynamic Rendering scope, culls unused passes and times each pass on the GPU.</p>
+      </div>
+      <div class="feat">
+        <span class="tag">RHI</span>
+        <h3>Engine and editor</h3>
+        <p>Typed command lists for graphics, compute, transfer and ray tracing, handle-based resource ownership and deferred deletion. A forward renderer with shadow cascades and GPU-baked IBL, and an ImGui editor.</p>
+      </div>
+    </div>
+    <div class="pipeline">
+<pre><span class="c">// one frame, one submit</span>
+Editor / Application
+  └─ SceneRenderer          Forward | PathTracer   <span class="c">// only the active one is alive</span>
+       └─ RenderGraph       declared access → order, barriers, scope merging
+            └─ Command lists  graphics · compute · ray tracing
+                 └─ Cerberus RHI → Vulkan</pre>
+    </div>
+    <div class="gallery">
+      <figure><img src="images/ibl.jpg" width="1161" height="635" loading="lazy" alt="Image-based lighting on PBR spheres"><figcaption>Image-based lighting, forward renderer</figcaption></figure>
+      <figure><img src="images/pcss.jpg" width="1160" height="638" loading="lazy" alt="Soft shadows with percentage-closer soft shadows"><figcaption>PCSS soft shadows</figcaption></figure>
+      <figure><img src="images/gun.jpg" width="1159" height="628" loading="lazy" alt="Cerberus gun model rendered with PBR materials"><figcaption>PBR materials on the Cerberus model</figcaption></figure>
+    </div>
+    <div class="repo">
+      <a class="btn" href="https://github.com/adrianrodriguesm/Cerberus-Engine">View the source on GitHub</a>
+      <span class="where">C++20 · Vulkan · GLSL · Apache 2.0</span>
+    </div>
+  </div>
+</section>
+
+<section id="experience">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="label">Experience</div>
+      <h2>Four years inside the Virtuos group</h2>
+    </div>
+    <div class="firm"><h3>Virtuos</h3><span class="where">Jun 2022 – present</span></div>
+    <div class="roles">
+      <div class="r"><span class="when">Feb 2025 – present</span><div><div class="t">Senior Graphics / Rendering Programmer · Third Kind Games</div><p class="s">Unannounced UE5 project under NDA (since Jul 2026) and Mavrix (Feb 2025 – Jul 2026). GPU and CPU performance on PS5, Xbox Series X|S and PC; engine-level renderer changes.</p></div></div>
+      <div class="r"><span class="when">Nov 2024 – Feb 2025</span><div><div class="t">Senior Graphics Programmer · Black Shamrock</div><p class="s">Judas, Unreal Engine 4. Time-sliced, on-demand reflection-probe generation for procedurally generated content; mentored a junior developer.</p></div></div>
+      <div class="r"><span class="when">Aug 2023 – Nov 2024</span><div><div class="t">Graphics Programmer · Black Shamrock</div><p class="s">Judas, Unreal Engine 4. Render-state streaming to cut primitives processed per frame; backported UE5 compute visibility to UE4.</p></div></div>
+      <div class="r"><span class="when">Jun 2022 – Aug 2023</span><div><div class="t">Junior Graphics Programmer · Virtuos Paris</div><p class="s">Judas, Unreal Engine 4. Culling to reduce draw calls and lighting optimisation within performance budgets.</p></div></div>
+    </div>
+    <p class="edu">Master's in Computer Science, Instituto Superior Técnico, Lisbon (2019 – 2021) · Bachelor's in Computer Science, University of Lisbon (2016 – 2019)</p>
+  </div>
+</section>
+
+<section id="earlier">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="label">Earlier projects</div>
+      <h2>Before Cerberus</h2>
+    </div>
+    <div class="earlier">
+      <div class="card"><span class="lang">GLSL</span><h3><a href="https://github.com/adrianrodriguesm/Progressive-Path-Tracer">Progressive Path Tracer</a></h3><p>A progressive path tracer written entirely in shaders.</p></div>
+      <div class="card"><span class="lang">C++</span><h3><a href="https://github.com/adrianrodriguesm/Ray-Tracer">Ray Tracer</a></h3><p>An offline distributed ray tracer on the CPU.</p></div>
+      <div class="card"><span class="lang">C · OpenGL</span><h3><a href="https://github.com/adrianrodriguesm/Interactive-Solar-System">OpenGL engines</a></h3><p>Engines built for university graphics courses, with particles, bloom and cel shading.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="contact">
+  <div class="wrap contact">
+    <div class="label">Contact</div>
+    <h2>Open to fully remote senior rendering roles</h2>
+    <div class="mail">
+      <code id="email">adrianrodriguesm.dev@gmail.com</code>
+      <button class="copy" id="copy-email" type="button">Copy email</button>
+    </div>
+    <div class="links">
+      <a href="https://www.linkedin.com/in/adrian-rodrigues-437b0a115/">LinkedIn</a>
+      <a href="https://github.com/adrianrodriguesm">GitHub</a>
+      <a href="Adrian_Rodrigues_CV.pdf">CV (PDF)</a>
+    </div>
+  </div>
+</section>
+
+<footer><div class="wrap">© 2026 Adrian Rodrigues</div></footer>
+
+<script>
+document.getElementById('copy-email').addEventListener('click', function () {
+  var btn = this, text = document.getElementById('email').textContent;
+  function done(msg) { btn.textContent = msg; setTimeout(function () { btn.textContent = 'Copy email'; }, 1800); }
+  function fallback() {
+    var r = document.createRange(); r.selectNodeContents(document.getElementById('email'));
+    var s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done('Selected, press Ctrl+C');
+  }
+  try { navigator.clipboard.writeText(text).then(function () { done('Copied'); }, fallback); } catch (e) { fallback(); }
+});
+</script>
+</body>
+</html>
