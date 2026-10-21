@@ -142,9 +142,10 @@ footer { padding-block: 28px 48px; font-size: 0.8rem; color: var(--muted); borde
     <div class="label">Remote · EU</div>
     <h1>Adrian Rodrigues</h1>
     <div class="role">Senior Graphics / Rendering Programmer</div>
-    <p class="intro">I make Unreal Engine 5 games run faster on PS5, Xbox Series X|S and PC. I profile the frame, find which part of a pass actually costs time, and fix it in the renderer or in the content. In my own time I build Cerberus, a Vulkan renderer with a hardware ray-traced path tracer.</p>
+    <p class="intro">I make Unreal Engine 5 games run faster and fit in memory on PS5, Xbox Series X|S and PC. I profile the frame, find which part of a pass actually costs time, and fix it in the renderer or in the content. In my own time I build Cerberus, a Vulkan renderer with a hardware ray-traced path tracer.</p>
     <div class="links">
-      <a class="btn" href="Adrian_Rodrigues_CV.pdf">Download CV (PDF)</a>
+      <a class="btn" href="Adrian_Rodrigues_CV_2pages.pdf">Download CV (2 pages)</a>
+      <a href="Adrian_Rodrigues_CV_1page.pdf">Short CV (1 page)</a>
       <a href="https://www.linkedin.com/in/adrian-rodrigues-437b0a115/">LinkedIn</a>
       <a href="https://github.com/adrianrodriguesm">GitHub</a>
       <a href="https://github.com/adrianrodriguesm/Cerberus-Engine">Cerberus source</a>
@@ -167,20 +168,30 @@ footer { padding-block: 28px 48px; font-size: 0.8rem; color: var(--muted); borde
   <div class="wrap">
     <div class="sec-head">
       <div class="label">Professional work</div>
-      <h2>Frame-time wins on shipping UE5 projects</h2>
+      <h2>Performance and memory work on UE5 projects</h2>
       <p class="lede">Results from my work at Third Kind Games (Virtuos). The current project is unannounced and under NDA, so only the pass, the change and the measured result are shown.</p>
     </div>
-    <div class="capture" role="table" aria-label="Optimisation results">
-      <div class="capture-head" role="row"><span role="columnheader">Pass</span><span role="columnheader">Change</span><span role="columnheader">Result</span></div>
+    <div class="capture" role="table" aria-label="Optimization results">
+      <div class="capture-head" role="row"><span role="columnheader">Area</span><span role="columnheader">Change</span><span role="columnheader">Result</span></div>
       <div class="pass" role="row">
         <div class="name" role="cell">Virtual Shadow Maps<span class="proj">Unannounced UE5 project · PS5</span></div>
-        <p class="what" role="cell">Changed how shadow animation updates are handled for skinned foliage.</p>
+        <p class="what" role="cell">Moved skinned-foliage shadow invalidation to the static path and time-sliced GPU invalidation across frames when lighting changes.</p>
         <div class="delta" role="cell"><span class="num">~29% cheaper</span><div class="track"><i style="width:29%"></i></div></div>
       </div>
       <div class="pass" role="row">
         <div class="name" role="cell">Nanite Visibility<span class="proj">Unannounced UE5 project</span></div>
-        <p class="what" role="cell">Profiled the pass and found voxels (~28%) and programmable raster (~20%) were its largest costs. Built tools to switch foliage Nanite settings to voxels and tuned programmable raster, density and rasteriser configuration.</p>
+        <p class="what" role="cell">Profiled the pass and found voxels (~28%) and programmable raster (~20%) were its largest costs. Built tools to switch foliage Nanite settings to voxels and tuned programmable raster, density and rasterizer configuration.</p>
         <div class="delta" role="cell"><span class="num">~20–25% cheaper</span><div class="track"><i class="range" style="width:25%"></i><i style="width:20%"></i></div></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Nanite visibility buffer<span class="proj">Unannounced UE5 project · PS5</span></div>
+        <p class="what" role="cell">Quantified programmable-raster cost with A/B tests: masked materials and World Position Offset accounted for about a tenth of the pass.</p>
+        <div class="delta" role="cell"><span class="num">~10% of the pass</span><div class="track"><i style="width:10%"></i></div></div>
+      </div>
+      <div class="pass" role="row">
+        <div class="name" role="cell">Base Pass<span class="proj">Unannounced UE5 project · PS5</span></div>
+        <p class="what" role="cell">Broke down shading with A/B tests and measured the cost of derivative-heavy shading and vertex-side material features; traced most of the cost to a small set of shading groups. Turned the findings into a prioritized action plan for Art and Tech Art.</p>
+        <div class="delta" role="cell"><span class="num">~7–9% per item</span><div class="track"><i class="range" style="width:9%"></i><i style="width:7%"></i></div></div>
       </div>
       <div class="pass" role="row">
         <div class="name" role="cell">Virtual Texture uploads<span class="proj">Unannounced UE5 project</span></div>
@@ -188,14 +199,14 @@ footer { padding-block: 28px 48px; font-size: 0.8rem; color: var(--muted); borde
         <div class="delta" role="cell"><span class="num">~30–40% lower spikes</span><div class="track"><i class="range" style="width:40%"></i><i style="width:30%"></i></div></div>
       </div>
       <div class="pass" role="row">
-        <div class="name" role="cell">Nanite raster &amp; Base Pass<span class="proj">Unannounced UE5 project · PS5</span></div>
-        <p class="what" role="cell">Broke both passes down against the platform budget with A/B tests: masked materials, WPO, derivative-heavy shading and vertex-side material features. Turned the findings into a prioritised action plan for Art and Tech Art.</p>
-        <div class="delta" role="cell"><span class="num">~7–10% per item</span><div class="track"><i class="range" style="width:10%"></i><i style="width:7%"></i></div></div>
+        <div class="name" role="cell">Memory<span class="proj">Mavrix · consoles</span></div>
+        <p class="what" role="cell">Worked extensively on memory within tight, fixed console budgets (notably Xbox Series S): fixed memory leaks, improved memory management in a custom plugin and used memory profiling tools to drive game-wide optimizations. Backported Unreal Engine fixes for memory, performance and stability.</p>
+        <div class="delta" role="cell"><span class="num plain">Memory leaks fixed</span></div>
       </div>
       <div class="pass" role="row">
-        <div class="name" role="cell">D3D12 RHI<span class="proj">Mavrix · PC</span></div>
-        <p class="what" role="cell">Diagnosed and fixed AMD-specific crashes when adding Ray Tracing Pipeline State Objects, with vendor-specific handling in the RHI.</p>
-        <div class="delta" role="cell"><span class="num plain">Crash fixed</span></div>
+        <div class="name" role="cell">Rendering &amp; RHI issues<span class="proj">Mavrix · PC</span></div>
+        <p class="what" role="cell">Diagnosed and fixed multiple rendering and RHI issues, including AMD-specific D3D12 crashes when adding Ray Tracing Pipeline State Objects and black-patch artifacts in Runtime Virtual Textures.</p>
+        <div class="delta" role="cell"><span class="num plain">Crashes and artifacts fixed</span></div>
       </div>
       <div class="pass" role="row">
         <div class="name" role="cell">Upscaling &amp; scalability<span class="proj">Mavrix · PC, PS5, Xbox Series X|S</span></div>
@@ -217,7 +228,7 @@ footer { padding-block: 28px 48px; font-size: 0.8rem; color: var(--muted); borde
     <div class="sec-head">
       <div class="label">Personal project</div>
       <h2>Cerberus</h2>
-      <p class="lede">A Vulkan renderer written from scratch in C++20. It has two scene renderers you can switch at runtime: a forward PBR rasteriser and a hardware ray-traced path tracer with its own denoiser. Both run on a render graph over a thin RHI.</p>
+      <p class="lede">A Vulkan renderer written from scratch in C++20. It has two scene renderers you can switch at runtime: a forward PBR rasterizer and a hardware ray-traced path tracer with its own denoiser. Both run on a render graph over a thin RHI.</p>
     </div>
     <figure>
       <div class="frame"><img src="pathtracer-editor.jpg" width="1800" height="980" loading="lazy" alt="Cerberus editor with the path tracer viewport, renderer settings for the SVGF denoiser and the GPU profiler panel"></div>
@@ -273,10 +284,10 @@ Editor / Application
     </div>
     <div class="firm"><h3>Virtuos</h3><span class="where">Jun 2022 – present</span></div>
     <div class="roles">
-      <div class="r"><span class="when">Feb 2025 – present</span><div><div class="t">Senior Graphics / Rendering Programmer · Third Kind Games</div><p class="s">Unannounced UE5 project under NDA (since Jul 2026) and Mavrix (Feb 2025 – Jul 2026). GPU and CPU performance on PS5, Xbox Series X|S and PC; engine-level renderer changes.</p></div></div>
+      <div class="r"><span class="when">Feb 2025 – present</span><div><div class="t">Senior Graphics Programmer · Third Kind Games</div><p class="s">Unannounced UE5 project under NDA (since Jul 2026) and Mavrix (Feb 2025 – Jul 2026). GPU performance, memory and stability on PC, PS5 and Xbox Series X|S; engine-level renderer and RHI changes.</p></div></div>
       <div class="r"><span class="when">Nov 2024 – Feb 2025</span><div><div class="t">Senior Graphics Programmer · Black Shamrock</div><p class="s">Judas, Unreal Engine 4. Time-sliced, on-demand reflection-probe generation for procedurally generated content; mentored a junior developer.</p></div></div>
       <div class="r"><span class="when">Aug 2023 – Nov 2024</span><div><div class="t">Graphics Programmer · Black Shamrock</div><p class="s">Judas, Unreal Engine 4. Render-state streaming to cut primitives processed per frame; backported UE5 compute visibility to UE4.</p></div></div>
-      <div class="r"><span class="when">Jun 2022 – Aug 2023</span><div><div class="t">Junior Graphics Programmer · Virtuos Paris</div><p class="s">Judas, Unreal Engine 4. Culling to reduce draw calls and lighting optimisation within performance budgets.</p></div></div>
+      <div class="r"><span class="when">Jun 2022 – Aug 2023</span><div><div class="t">Junior Graphics Programmer · Virtuos Paris</div><p class="s">Judas, Unreal Engine 4. Culling to reduce draw calls and lighting optimization within performance budgets.</p></div></div>
     </div>
     <p class="edu">Master's in Computer Science, Instituto Superior Técnico, Lisbon (2019 – 2021) · Bachelor's in Computer Science, University of Lisbon (2016 – 2019)</p>
   </div>
@@ -307,7 +318,8 @@ Editor / Application
     <div class="links">
       <a href="https://www.linkedin.com/in/adrian-rodrigues-437b0a115/">LinkedIn</a>
       <a href="https://github.com/adrianrodriguesm">GitHub</a>
-      <a href="Adrian_Rodrigues_CV.pdf">CV (PDF)</a>
+      <a href="Adrian_Rodrigues_CV_2pages.pdf">CV (2 pages)</a>
+      <a href="Adrian_Rodrigues_CV_1page.pdf">Short CV (1 page)</a>
     </div>
   </div>
 </section>
